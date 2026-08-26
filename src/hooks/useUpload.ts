@@ -8,10 +8,10 @@ export type Status = 'idle' | 'over' | 'uploading' | 'success' | 'error';
 export type Picked = { name: string; size: number; url: string };
 
 /**
- * The zone says the same thing however an upload fails, so the only thing left to carry
- * is whether the recovery re-sends the same file or asks for a different one.
+ * `retryable` decides whether recovery re-sends the same file or asks for a different
+ * one. `overLimit` is the only failure the zone names specifically.
  */
-export type UploadError = { retryable: boolean };
+export type UploadError = { retryable: boolean; overLimit?: boolean };
 
 type State = {
   status: Status;
@@ -25,7 +25,7 @@ const INITIAL: State = { status: 'idle', file: null, progress: 0, error: null };
 /** Both failures here need a different file, so neither is retryable. */
 function validate(file: File): UploadError | null {
   if (!ACCEPTED.includes(file.type)) return { retryable: false };
-  if (file.size > SIZE_LIMIT) return { retryable: false };
+  if (file.size > SIZE_LIMIT) return { retryable: false, overLimit: true };
   return null;
 }
 

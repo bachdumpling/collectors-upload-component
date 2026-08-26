@@ -25,11 +25,17 @@ in vec3 position;
 void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }
 `;
 
-/** The camera pulls in as the pointer arrives, so the zone opens up under the cursor. */
-const ZOOM = { rest: 0.29, engaged: 0.6 };
+/** The camera pulls in as the pointer arrives, so the zone opens up under the cursor.
+ *  `field` is the upload framing: looking almost straight down so every ray hits the
+ *  surface and the liquid fills the zone corner to corner. */
+const ZOOM = { rest: 0.29, engaged: 0.6, field: 0.85 };
 
 /** How tightly the radial mask gathers the mass when `spread` is 0. */
 const GLOBE = 0.7;
+
+/** Globe camera, matched to the idle mass. Spread lerps these toward FIELD. */
+const GLOBE_CAM = { tilt: 0.49, height: 1.5, band: 0.185 };
+const FIELD = { tilt: 0.12, height: 0.5, band: 0.08 };
 
 type Shared = {
   target: FieldTargets;
@@ -111,11 +117,15 @@ function WaveScene({ shared }: { shared: React.RefObject<Shared> }) {
     m.y += (s.pointer.y - m.y) * 0.07;
 
     const engaged = Math.max(s.current.hover, s.current.drag, s.current.engage);
-    u.uZoom.value = ZOOM.rest + (ZOOM.engaged - ZOOM.rest) * engaged;
-
-    // Spread releases the radial mask, so the globe opens out into a full field while
-    // the upload runs and gathers back afterwards.
-    u.uGlobe.value = GLOBE * (1 - s.current.spread);
+    const opened = s.current.spread;
+    const zoomIdle = ZOOM.rest + (ZOOM.engaged - ZOOM.rest) * engaged;
+    // Spread does more than drop the radial mask: it also sits the camera on the
+    // field framing, otherwise the corners stay empty even with globe at 0.
+    u.uZoom.value = zoomIdle + (ZOOM.field - zoomIdle) * opened;
+    u.uTilt.value = GLOBE_CAM.tilt + (FIELD.tilt - GLOBE_CAM.tilt) * opened;
+    u.uHeight.value = GLOBE_CAM.height + (FIELD.height - GLOBE_CAM.height) * opened;
+    u.uBand.value = GLOBE_CAM.band + (FIELD.band - GLOBE_CAM.band) * opened;
+    u.uGlobe.value = GLOBE * (1 - opened);
 
     if (!still) u.iTime.value = clock.elapsedTime;
     u.uFill.value = s.current.fill;

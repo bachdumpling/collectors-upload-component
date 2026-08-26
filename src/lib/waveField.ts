@@ -270,7 +270,7 @@ export const EASE: Record<keyof FieldTargets, number> = {
   hover: 0.12,
   drag: 0.16,
   engage: 0.055,
-  spread: 0.035
+  spread: 0.12
 };
 
 export const hexToRgb = (hex: string): [number, number, number] => {

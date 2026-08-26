@@ -3,8 +3,7 @@ import { useAnimate } from 'motion/react';
 import GlassToggle from '@/components/GlassToggle';
 import { type FieldHandle } from '@/lib/waveField';
 import TransmissionField from '@/components/TransmissionField';
-import { SIZE_LIMIT, useUpload } from '@/hooks/useUpload';
-import { formatBytes } from '@/lib/format';
+import { useUpload } from '@/hooks/useUpload';
 
 /** How long the uploaded image rests at centre before it leaves. */
 const HOLD_MS = 5_000;
@@ -181,11 +180,13 @@ export default function UploadZone() {
 
   const pct = Math.round(progress * 100);
 
+  const errorLabel = error?.overLimit ? 'File over limit of 8.0 MB' : 'Upload error';
+
   // Nothing to say while the level travels, and nothing after -- the image is the message.
   const label =
     status === 'uploading' || status === 'success' ? ''
       : status === 'over' ? 'Let go to upload'
-        : status === 'error' ? 'Upload error'
+        : status === 'error' ? errorLabel
           : touch ? 'Add an image'
             : 'Drop an image';
 
@@ -238,7 +239,7 @@ export default function UploadZone() {
 
             {status === 'idle' || status === 'over' ? (
               <p className="text-[12.5px] leading-normal text-[color-mix(in_oklab,var(--readout-ink),transparent_45%)]">
-                {status === 'over' ? 'One image at a time' : <>JPG, PNG, WebP · up to {formatBytes(SIZE_LIMIT)}</>}
+                {status === 'over' ? 'One image at a time' : 'JPG, PNG, WebP Max 8.0 MB'}
               </p>
             ) : null}
 
@@ -254,7 +255,7 @@ export default function UploadZone() {
           <button
             type="button"
             onClick={primaryAction}
-            aria-label={error ? 'Upload error. Try again.' : 'Choose an image to upload'}
+            aria-label={error ? `${errorLabel}. Try again.` : 'Choose an image to upload'}
             // The zone clips its overflow, so an outset ring would be cut off. An inset ring sits
             // inside the bounds and stays whole.
             className="absolute inset-0 z-30 cursor-pointer rounded-[22px] outline-none ring-inset ring-[var(--focus)] focus-visible:ring-[3px]"
@@ -275,7 +276,7 @@ export default function UploadZone() {
 
       <p aria-live="polite" className="sr-only">
         {status === 'uploading' ? `Uploading, ${pct} percent`
-          : status === 'error' ? 'Upload error. Try again.'
+          : status === 'error' ? `${errorLabel}. Try again.`
             : ''}
       </p>
 
