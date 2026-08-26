@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "upload-zone",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev", "--port", "5175", "--strictPort"],
+      "port": 5175
+    }
+  ]
+}
